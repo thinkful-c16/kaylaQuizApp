@@ -8,7 +8,7 @@ Step 1: Define objects & database
 const QUESTIONS = [
   {question: 'What position did he play?', 
     answers: ['Point guard', 'Center', 'Power Forward', 'Shooting guard', 'Small Forward'], 
-    correctAnswer: 'Small Forward'},
+    correctAnswer: 'Shooting guard'},
   {question: 'Jordan made a NBA comeback in 2001. Which team did he play for?', 
     answers: ['Chicago Bulls', 'Washington Wizards', 'Boston Celtics', 'Phoenix Suns', 'Los Angeles Lakers'],
     correctAnswer: 'Washington Wizards'},
@@ -25,6 +25,8 @@ const QUESTIONS = [
 const STORE = {
   currentQuestionIndex: null,
   userAnswer: [],
+  userCorrectAnswers: [],
+  userIncorrectAnswers: [],
   currentView: 'start',
   currentScore: 0,
 
@@ -50,7 +52,6 @@ function render() {
     $('.js-quiz-container').html(questionTemplate);
     $('.intro').hide();
     $('.feedback').hide();
-    $('.score').show();
     $('.outro').hide();
 
   }
@@ -58,12 +59,11 @@ function render() {
     $('.intro').hide();
     $('.questions').show();
     $('.feedback').show();
-    $('.score').show();
     $('.outro').hide();
-    if (STORE.userAnswer === QUESTIONS.correctAnswer) {
-      $('.js-feedback').html(correctAnswerTemplate);
+    if (STORE.userAnswer[STORE.currentQuestionIndex-1] === QUESTIONS[STORE.currentQuestionIndex].correctAnswer) {
+      $('.js-quiz-container').html(correctAnswerTemplate);
     } else {
-      $('.js-feedback').html(wrongAnswerTemplate);
+      $('.feedback').html(wrongAnswerTemplate);
     }
 
   } else if (STORE.currentView === 'results') {
@@ -72,10 +72,10 @@ function render() {
     $('.intro').hide();
     $('.questions').hide();
     $('.feedback').hide();
-    $('.score').hide();
 
   }
 }
+
 
 /*******/
 //Template generators//
@@ -169,8 +169,8 @@ function handleAnswerSubmitted() {
     } 
     else {
       const answer = $('input[name=answers]:checked').val(); 
-      console.log(answer);
       STORE.userAnswer.push(answer);
+      checkAnswer(answer);
       $('input[type=radio]').prop('checked',false); 
       STORE.currentQuestionIndex++;
       render();
@@ -180,12 +180,18 @@ function handleAnswerSubmitted() {
 
 
 //bugs: results page will not render.
-//doesnt get input value of first questions
 
 /***************/
 //STEP 3: Helper Functions
 /**************/
 
+function checkAnswer(answer) {
+  if (STORE.userAnswer[STORE.currentQuestionIndex] === QUESTIONS[STORE.currentQuestionIndex].correctAnswer) {
+    STORE.userCorrectAnswers.push(answer);
+  } else {
+    STORE.userIncorrectAnswers.push(answer);
+  }
+}
 
 function changeView(view) {
   STORE.currentView = view;
