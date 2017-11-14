@@ -167,7 +167,7 @@ function handleResetButton() {
 function handleAnswerSubmitted() {
   $('.js-quiz-container').on('click', '#js-answersSubmit', function(e) {
     e.preventDefault();    
-    if (STORE.currentQuestionIndex === QUESTIONS.length) {
+    if (STORE.currentQuestionIndex === (QUESTIONS.length-1)) {
       handleResults();
       render();
     } 
@@ -183,7 +183,7 @@ function handleAnswerSubmitted() {
 }
 
 
-//bugs: results page anf feedback will not render.
+//bugs: feedback will not render.
 
 /***************/
 //STEP 3: Helper Functions
@@ -201,7 +201,6 @@ function checkAnswer(answer) {
 
 function changeView(view) {
   STORE.currentView = view;
-  //grab from event handler
 }
 
 function handleResults() {
