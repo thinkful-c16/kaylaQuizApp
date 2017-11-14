@@ -39,34 +39,41 @@ const STORE = {
 function render() {
 
   if (STORE.currentView === 'start') {
-    // $('.intro').show();
-    $('.js-quiz-container').html(introTemplate);
+    $('.intro').show();
+    $('.intro').html(introTemplate);
     $('.questions').hide();
     $('.feedback').hide();
     $('.score').hide();
     $('.outro').hide();
 
   } 
-  else if (STORE.currentView === 'questions') {
-   
-    $('.js-quiz-container').html(questionTemplate);
+  else if (STORE.currentView === 'questions' && STORE.userCorrectAnswers[STORE.currentQuestionIndex]) {
+    $('.questions').show();
+    $('.questions').html(questionTemplate);
     $('.intro').hide();
-    $('.feedback').hide();
+    $('.feedback').show();
+    $('.feedback').append(correctAnswerTemplate);
     $('.outro').hide();
 
   }
-  else if (STORE.currentView === 'feedback') {
+  else if (STORE.currentView === 'questions' && STORE.userIncorrectAnswers[STORE.currentQuestionIndex]) {
     $('.intro').hide();
     $('.questions').show();
+    $('.questions').html(questionTemplate);
     $('.feedback').show();
+    $('.feedback').append(wrongAnswerTemplate);
     $('.outro').hide();
-    if (STORE.userAnswer[STORE.currentQuestionIndex-1] === QUESTIONS[STORE.currentQuestionIndex].correctAnswer) {
-      $('.js-quiz-container').html(correctAnswerTemplate);
-    } else {
-      $('.feedback').html(wrongAnswerTemplate);
-    }
+  }
+  else if (STORE.currentView === 'questions') {
+    $('.intro').hide();
+    $('.questions').show();
+    $('.questions').html(questionTemplate);
+    $('.feedback').hide();
+    $('.score').hide();
+    $('.outro').hide();
+  }
 
-  } else if (STORE.currentView === 'results') {
+  else {
     $('.outro').show();
     $('.outro').html(resultsTemplate);
     $('.intro').hide();
@@ -89,27 +96,23 @@ const introTemplate = function() {
 
 const correctAnswerTemplate = function() {
   return `
-  <div class='js-feedback><p>Correct!</p></div>
+  <p class='js-feedback>Correct!</p>
   `;
 };
 
 const wrongAnswerTemplate = function() {
   return `
-  <div class='js-feedback><p>Sorry, that's incorrect.</p></div>
+  <p class='js-feedback><p>Sorry, that is incorrect.</p>
   `;
 };
 
 const resultsTemplate = function() {
   return `
-  <div class='js-outro'>Reset quiz to play again</div>`;
+  <div class='js-outro'>Reset quiz to play again
+  <input type='submit' id='js-reset-quiz' value='Reset Quiz'></div>
+  `;
 
 };
-
-// const scoringTemplate = function() {
-//   return `
-//     </div>Question ${currentQuestionIndex+1} of ${QUESTIONS.length}</div>
-//     <div>${QUESTIONS.correctAnswer}</div>`;
-// };
 
 
 const questionTemplate = function() {
@@ -129,7 +132,7 @@ const questionTemplate = function() {
     <input type='submit' id='js-answersSubmit' class='js-the-button' value='Enter'>
     <input type='submit' id='js-reset-quiz' value='Reset Quiz'>
     </div>Question ${STORE.currentQuestionIndex+1} of ${QUESTIONS.length}</div>
-    <div>Curent score: ${handleScore()}%</div>
+    <div>Current score: ${handleScore()}%</div>
   </form>
     
   `;
@@ -166,6 +169,7 @@ function handleAnswerSubmitted() {
     e.preventDefault();    
     if (STORE.currentQuestionIndex === QUESTIONS.length) {
       handleResults();
+      render();
     } 
     else {
       const answer = $('input[name=answers]:checked').val(); 
@@ -179,7 +183,7 @@ function handleAnswerSubmitted() {
 }
 
 
-//bugs: results page will not render.
+//bugs: results page anf feedback will not render.
 
 /***************/
 //STEP 3: Helper Functions
@@ -188,8 +192,11 @@ function handleAnswerSubmitted() {
 function checkAnswer(answer) {
   if (STORE.userAnswer[STORE.currentQuestionIndex] === QUESTIONS[STORE.currentQuestionIndex].correctAnswer) {
     STORE.userCorrectAnswers.push(answer);
+    changeView('feedback');
+    render();
   } else {
     STORE.userIncorrectAnswers.push(answer);
+    render();
   }
 }
 
@@ -200,8 +207,9 @@ function changeView(view) {
 
 function handleResults() {
   changeView('results');
+  handleResetButton();
   render();
-  // handleAnswerSubmitted();
+
 }
 
 function handleScore() {
