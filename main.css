@@ -30,3 +30,10 @@ input[submit] {
     font-size: 20px;
     text-align: center;
 }
+
+.feedback {
+    position: absolute;
+    bottom: 10px;
+    color: red;
+    font-weight: bold;
+}

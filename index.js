@@ -47,21 +47,21 @@ function render() {
     $('.outro').hide();
 
   } 
-  else if (STORE.currentView === 'questions' && STORE.userCorrectAnswers[STORE.currentQuestionIndex]) {
+  else if ((STORE.currentView === 'questions') && (STORE.userCorrectAnswers[STORE.currentQuestionIndex])) {
     $('.questions').show();
-    $('.questions').html(questionTemplate);
+    // $('.questions').html(questionTemplate);
     $('.intro').hide();
     $('.feedback').show();
-    $('.feedback').append(correctAnswerTemplate);
+    $('.feedback').html(correctAnswerTemplate);
     $('.outro').hide();
 
   }
-  else if (STORE.currentView === 'questions' && STORE.userIncorrectAnswers[STORE.currentQuestionIndex]) {
+  else if ((STORE.currentView === 'questions') && (STORE.userIncorrectAnswers[STORE.currentQuestionIndex])) {
     $('.intro').hide();
     $('.questions').show();
-    $('.questions').html(questionTemplate);
+    // $('.questions').html(questionTemplate);
     $('.feedback').show();
-    $('.feedback').append(wrongAnswerTemplate);
+    $('.feedback').html(wrongAnswerTemplate);
     $('.outro').hide();
   }
   else if (STORE.currentView === 'questions') {
@@ -108,12 +108,15 @@ const wrongAnswerTemplate = function() {
 
 const resultsTemplate = function() {
   return `
-  <div class='js-outro'>Reset quiz to play again
+  <div class='js-outro'>
+    <p>You scored ${handleFinalScore()}%</p><br>
+      <p>Reset quiz to play again</p><br>
   <input type='submit' id='js-reset-quiz' value='Reset Quiz'></div>
   `;
 
 };
 
+console.log(STORE.userCorrectAnswers.length/STORE.userIncorrectAnswers.length*100);
 
 const questionTemplate = function() {
   return `<div class='js-questions' 'js-question-item-${STORE.currentQuestionIndex}>${QUESTIONS[STORE.currentQuestionIndex].question}</div<br>
@@ -132,7 +135,7 @@ const questionTemplate = function() {
     <input type='submit' id='js-answersSubmit' class='js-the-button' value='Enter'>
     <input type='submit' id='js-reset-quiz' value='Reset Quiz'>
     </div>Question ${STORE.currentQuestionIndex+1} of ${QUESTIONS.length}</div>
-    <div>Current score: ${handleScore()}%</div>
+    <div>Current score: ${handleCurrentScore()}</div>
   </form>
     
   `;
@@ -158,13 +161,24 @@ function handleResetButton() {
   $('.js-quiz-container').on('click', '#js-reset-quiz', function(e) {
     e.preventDefault();
     STORE['userAnswer'] = [];
+    STORE['userCorrectAnswers'] = [];
+    STORE['userIncorrectAnswers'] = [];
+    STORE['currentScore'] = 0;
     handleQuizStart();
     render();
   });
 }
 
 
+
 function handleAnswerSubmitted() {
+  ///have button disabled until radio button checked
+  //<input type='submit' id='js-answersSubmit' class='js-the-button' value='Enter'>
+//  $('.js-quiz-container').on('click', 'input[type=radio]',
+  // if ($('input[type=radio]').prop('checked',true); 
+  if ($('input[name=answers]').prop('checked', true)) {
+    $('js-quiz-container').find('#js-answersSubmit').prop('disabled', false);
+  }
   $('.js-quiz-container').on('click', '#js-answersSubmit', function(e) {
     e.preventDefault();    
     if (STORE.currentQuestionIndex === (QUESTIONS.length-1)) {
@@ -175,7 +189,7 @@ function handleAnswerSubmitted() {
       const answer = $('input[name=answers]:checked').val(); 
       STORE.userAnswer.push(answer);
       checkAnswer(answer);
-      $('input[type=radio]').prop('checked',false); 
+      // $('input[type=radio]').prop('checked',true); 
       STORE.currentQuestionIndex++;
       render();
     }
@@ -210,10 +224,26 @@ function handleResults() {
 
 }
 
-function handleScore() {
-  const percentage = STORE.currentScore/5*100;
-  return percentage;
+function handleCurrentScore() {
+  if (STORE.currentView === 'results' && STORE.userCorrectAnswers === []) {
+    STORE.userCorrectAnswers = 0;
+  } 
+  else if (STORE.currentView === 'results' && STORE.userIncorrectAnswers === []) {
+    STORE.userIncorrectAnswers = 0;
+  } 
+  const score = STORE.userCorrectAnswers.length;
+  return score;
 }
+
+function handleFinalScore() {
+  const finalScore = STORE.userCorrectAnswers.length/STORE.userIncorrectAnswers.length*100;
+  if (finalScore === Infinity) {
+    return 100;
+  } else {
+    return finalScore;
+  }
+}
+
 
 //**********/
 //STEP 0: INITIALIZATION
@@ -224,7 +254,8 @@ $(document).ready(function() {
   handleQuizStart();
   handleAnswerSubmitted();
   handleResetButton();
-  handleScore();
+  handleCurrentScore();
+  // $('.questions').find('#js-answersSubmit').prop('disabled', true);
 
 });
 
