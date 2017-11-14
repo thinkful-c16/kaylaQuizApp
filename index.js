@@ -192,7 +192,6 @@ function handleAnswerSubmitted() {
 function checkAnswer(answer) {
   if (STORE.userAnswer[STORE.currentQuestionIndex] === QUESTIONS[STORE.currentQuestionIndex].correctAnswer) {
     STORE.userCorrectAnswers.push(answer);
-    changeView('feedback');
     render();
   } else {
     STORE.userIncorrectAnswers.push(answer);
