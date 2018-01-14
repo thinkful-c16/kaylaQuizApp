@@ -2,33 +2,44 @@
     box-sizing: border-box;
 }
 
-h1 {
-    text-align: center;
+body {
+    background-color: #282D4F;
 }
 
+
 .js-quiz-container {
-    max-width: 800px;
+    max-width: 1200px;
+    display: flex;
     height: 400px;
 }
 
-.js-splash-page-dunk {
-    text-align: center;
-    max-width: 100%;
+.intro {
+text-align: center;
 }
 
-/* .js-the-button, .js-reset-quiz {
-    width: 100px;
-    height: 20px;
-    font-size: 20px;
+#js-quiz-header {
     text-align: center;
+    color: #FF6C00;
+}
 
-} */
+#js-jordan-dunk {
+    max-width: 70%;
+    border-radius: 10px;
+    border: 2px solid #FF6C00;
+}
 
-input[submit] {
-    width: 100px;
-    height: 20px;
+
+.js-the-button {
+    display: block;
+    width: 120px;
+    height: 40px;
     font-size: 20px;
-    text-align: center;
+    margin: 0 auto;
+    background-color: #A0204C;
+    color: #F4F4F4;
+    font-weight: bold;
+    margin-top: 10px;
+    
 }
 
 .feedback {

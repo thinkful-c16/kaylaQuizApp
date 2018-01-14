@@ -1,6 +1,20 @@
 /* global $ */
 'use strict';
 
+//**********/
+//STEP 0: INITIALIZATION
+//*********/
+
+$(document).ready(function() {
+  render();
+  handleQuizStart();
+  handleAnswerSubmitted();
+  handleResetButton();
+  handleCurrentScore();
+
+});
+
+
 /******************************************************** 
 Step 1: Define objects & database 
 ********************************************************/
@@ -32,91 +46,37 @@ const STORE = {
 
 };
 
-/**********/
-//STEP 1: RENDER
-//**********/
-
-function render() {
-
-  if (STORE.currentView === 'start') {
-    $('.intro').show();
-    $('.intro').html(introTemplate);
-    $('.questions').hide();
-    $('.feedback').hide();
-    $('.score').hide();
-    $('.outro').hide();
-
-  } 
-  else if ((STORE.currentView === 'questions') && (STORE.userCorrectAnswers[STORE.currentQuestionIndex])) {
-    $('.questions').show();
-    // $('.questions').html(questionTemplate);
-    $('.intro').hide();
-    $('.feedback').show();
-    $('.feedback').html(correctAnswerTemplate);
-    $('.outro').hide();
-
-  }
-  else if ((STORE.currentView === 'questions') && (STORE.userIncorrectAnswers[STORE.currentQuestionIndex])) {
-    $('.intro').hide();
-    $('.questions').show();
-    // $('.questions').html(questionTemplate);
-    $('.feedback').show();
-    $('.feedback').html(wrongAnswerTemplate);
-    $('.outro').hide();
-  }
-  else if (STORE.currentView === 'questions') {
-    $('.intro').hide();
-    $('.questions').show();
-    $('.questions').html(questionTemplate);
-    $('.feedback').hide();
-    $('.score').hide();
-    $('.outro').hide();
-  }
-
-  else {
-    $('.outro').show();
-    $('.outro').html(resultsTemplate);
-    $('.intro').hide();
-    $('.questions').hide();
-    $('.feedback').hide();
-
-  }
-}
-
-
-/*******/
-//Template generators//
-/*****/
+/***********************/
+//TEMPLATE GENERATORS//
+/**********************/
 
 const introTemplate = function() {
-  return `<h1>His Airness, Michael Jordan:<br> How much do you know?</h1>
-  <img src='jordandunk.jpg' class='js-splash-page-dunk alt='Michael Jordan dunking the basketball from free throw line'>
+  return `<h1 id='js-quiz-header'>His Airness, Michael Jordan:<br> How much do you know?</h1>
+  <img id='js-jordan-dunk' src='jordandunk.jpg' class='js-splash-page-dunk alt='Michael Jordan dunking the basketball from free throw line'>
     <input type='submit' class='js-the-button' id='startButton' value='Start Quiz'>`;
 };
 
 const correctAnswerTemplate = function() {
   return `
-  <p class='js-feedback>Correct!</p>
+  <p class='js-feedback'>Correct!</p>
   `;
 };
 
 const wrongAnswerTemplate = function() {
   return `
-  <p class='js-feedback><p>Sorry, that is incorrect.</p>
+  <p class='js-feedback'><p>Sorry, that is incorrect.</p>
   `;
 };
 
 const resultsTemplate = function() {
   return `
   <div class='js-outro'>
-    <p>You scored ${handleFinalScore()}%</p><br>
+    <p>You scored ${handleFinalScore()}</p><br>
       <p>Reset quiz to play again</p><br>
   <input type='submit' id='js-reset-quiz' value='Reset Quiz'></div>
   `;
 
 };
-
-console.log(STORE.userCorrectAnswers.length/STORE.userIncorrectAnswers.length*100);
 
 const questionTemplate = function() {
   return `<div class='js-questions' 'js-question-item-${STORE.currentQuestionIndex}>${QUESTIONS[STORE.currentQuestionIndex].question}</div<br>
@@ -143,6 +103,59 @@ const questionTemplate = function() {
 
 
 /**********/
+//STEP 1: RENDER
+//**********/
+
+function render() {
+
+  if (STORE.currentView === 'start') {
+    $('.intro').show();
+    $('.intro').append(introTemplate);
+    $('.questions').hide();
+    $('.feedback').hide();
+    $('.score').hide();
+    $('.outro').hide();
+
+  } 
+  else if ((STORE.currentView === 'questions') && (STORE.userCorrectAnswers[STORE.currentQuestionIndex])) {
+    $('.questions').show();
+    $('.questions').append(questionTemplate);
+    $('.intro').hide();
+    $('.feedback').show();
+    $('.answer-incorrect').hide();
+    // $('.feedback').html(correctAnswerTemplate);
+    $('.outro').hide();
+
+  }
+  else if ((STORE.currentView === 'questions') && (STORE.userIncorrectAnswers[STORE.currentQuestionIndex])) {
+    $('.intro').hide();
+    $('.questions').show();
+    $('.feedback').show();
+    $('.answer-correct').show();
+    // $('.feedback').html(wrongAnswerTemplate);
+    $('.outro').hide();
+  }
+  else if (STORE.currentView === 'questions') {
+    $('.intro').hide();
+    $('.questions').show();
+    $('.questions').html(questionTemplate);
+    $('.score').hide();
+    $('.outro').hide();
+  }
+
+  else {
+    $('.outro').show();
+    $('.outro').html(resultsTemplate);
+    $('.intro').hide();
+    $('.questions').hide();
+    $('.feedback').hide();
+
+  }
+}
+
+
+
+/**********/
 //STEP 2: EVENT LISTENERS(USER INPUT)
 /*********/
 
@@ -152,6 +165,7 @@ function handleQuizStart() {
     e.preventDefault();
     changeView('questions');
     STORE.currentQuestionIndex = 0;
+    handleCurrentScore();
     render();
   });
 
@@ -172,16 +186,12 @@ function handleResetButton() {
 
 
 function handleAnswerSubmitted() {
-  ///have button disabled until radio button checked
-  //<input type='submit' id='js-answersSubmit' class='js-the-button' value='Enter'>
-//  $('.js-quiz-container').on('click', 'input[type=radio]',
-  // if ($('input[type=radio]').prop('checked',true); 
-  if ($('input[name=answers]').prop('checked', true)) {
-    $('js-quiz-container').find('#js-answersSubmit').prop('disabled', false);
-  }
   $('.js-quiz-container').on('click', '#js-answersSubmit', function(e) {
     e.preventDefault();    
     if (STORE.currentQuestionIndex === (QUESTIONS.length-1)) {
+      const lastAnswer = $('input[name=answers]:checked').val(); 
+      STORE.userAnswer.push(lastAnswer);
+      checkAnswer(lastAnswer);
       handleResults();
       render();
     } 
@@ -189,15 +199,22 @@ function handleAnswerSubmitted() {
       const answer = $('input[name=answers]:checked').val(); 
       STORE.userAnswer.push(answer);
       checkAnswer(answer);
-      // $('input[type=radio]').prop('checked',true); 
       STORE.currentQuestionIndex++;
       render();
     }
   });
 }
 
+function handleCorrectAnswer() {
 
-//bugs: feedback will not render.
+  $('.answer-correct').show();
+}
+
+function handleWrongtAnswer() {
+  $('.answer-incorrect').show();
+}
+
+
 
 /***************/
 //STEP 3: Helper Functions
@@ -225,6 +242,7 @@ function handleResults() {
 }
 
 function handleCurrentScore() {
+  //handling empty arrays if user has either no incorrect answers or no correct answers
   if (STORE.currentView === 'results' && STORE.userCorrectAnswers === []) {
     STORE.userCorrectAnswers = 0;
   } 
@@ -236,7 +254,7 @@ function handleCurrentScore() {
 }
 
 function handleFinalScore() {
-  const finalScore = STORE.userCorrectAnswers.length/STORE.userIncorrectAnswers.length*100;
+  const finalScore = STORE.userAnswers.length/STORE.userCorrectAnswers.length*100;
   if (finalScore === Infinity) {
     return 100;
   } else {
@@ -245,18 +263,5 @@ function handleFinalScore() {
 }
 
 
-//**********/
-//STEP 0: INITIALIZATION
-//*********/
-
-$(document).ready(function() {
-  render();
-  handleQuizStart();
-  handleAnswerSubmitted();
-  handleResetButton();
-  handleCurrentScore();
-  // $('.questions').find('#js-answersSubmit').prop('disabled', true);
-
-});
 
 
